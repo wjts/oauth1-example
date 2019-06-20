@@ -8,6 +8,9 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
+/**
+ * TODO: if you want to use it, please clean up this mess ;)
+ */
 class OAuthRequest
 {
     /**
@@ -23,11 +26,17 @@ class OAuthRequest
         return $httpClient->request($method, $requestUri, $this->options($method, $requestUri, $queryParams));
     }
 
+    /**
+     * Generates options array for the http-client's request() method: query params, headers, etc.
+     *
+     * @param string $method
+     * @param string $requestUri
+     * @param array $queryParams
+     * @return array
+     */
     private function options(string $method, string $requestUri, array $queryParams = [])
     {
-        ksort($queryParams);
-
-        // its only proof of concept, so lets begin hardcoding!
+        // its only proof of concept, so lets begin hard coding!
         $consumerKey = 'key'; // we put this into query params
         $consumerSecret = 'secret'; // we use this in signature generator
 
@@ -49,17 +58,42 @@ class OAuthRequest
         ];
     }
 
+    /**
+     * Prepare query for the signing process, pain in the ... ;)
+     * Its not exactly url encode, so you have to manually translate special url chars (at least):
+     * & becomes %26
+     * space becomes %20
+     * = becomes %3D
+     *
+     * @param string $method
+     * @param string $requestUri
+     * @param array $queryParams
+     * @return string
+     */
     private function baseString(string $method, string $requestUri, array $queryParams)
     {
         $params = http_build_query($queryParams, null, '%26', PHP_QUERY_RFC3986);
         return sprintf('%s&%s&%s', $method, urlencode($requestUri), strtr($params, ['=' => '%3D']));
     }
 
+    /**
+     * Signature generation
+     *
+     * @param string $baseString
+     * @param string $key
+     * @return string
+     */
     private function sign(string $baseString, string $key)
     {
         return base64_encode(hash_hmac('sha1', $baseString, $key, true));
     }
 
+    /**
+     * Used to generate noonce value
+     * Must be unique within the corresponding timestamp
+     *
+     * @return string
+     */
     private function noonce()
     {
         $data = openssl_random_pseudo_bytes(16);

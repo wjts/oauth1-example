@@ -2,9 +2,7 @@
 
 namespace App\Command;
 
-use App\OAuth1\OAuthHeaders;
 use App\OAuth1\OAuthRequest;
-use App\OAuth1\OAuthSignature;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -31,8 +29,7 @@ class ExampleCommand extends Command
     protected function configure()
     {
         $this
-            ->setDescription('OAuth1 Example using http-client')
-        ;
+            ->setDescription('OAuth1 example using http-client');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -43,6 +40,4 @@ class ExampleCommand extends Command
 
         dump($response->getContent());
     }
-
-
 }
